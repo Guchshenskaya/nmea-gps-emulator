@@ -6,11 +6,12 @@ import threading
 import uuid
 import logging
 
+import RPi.GPIO as GPIO
+
 from nmea_gps import NmeaMsg
 from utils import position_input, ip_port_input, trans_proto_input, heading_input, speed_input, \
     heading_speed_input, serial_config_input
 from custom_thread import NmeaStreamThread, NmeaSerialThread, run_telnet_server_thread
-
 
 class Menu:
     """
@@ -36,11 +37,11 @@ class Menu:
 ..####...##.......####...........######..##...##...####...######..##..##....##.....####...##..##.
 .................................................................................................
         ''')
-        print('### Choose emulator option: ###')
-        print('1 - NMEA Serial')
-        print('2 - NMEA TCP Server')
-        print('3 - NMEA TCP or UDP Stream')
-        print('4 - Quit')
+        # print('### Choose emulator option: ###')
+        # print('1 - NMEA Serial')
+        # print('2 - NMEA TCP Server')
+        # print('3 - NMEA TCP or UDP Stream')
+        # print('4 - Quit')
 
     def run(self):
         """
@@ -49,7 +50,8 @@ class Menu:
         self.display_menu()
         while True:
             try:
-                choice = input('>>> ')
+                # choice = input('>>> ')
+                choice = '1'
             except KeyboardInterrupt:
                 print('\n\n*** Closing the script... ***\n')
                 sys.exit()
@@ -84,27 +86,27 @@ class Menu:
                 if first_run:
                     time.sleep(2)
                     first_run = False
-                try:
-                    prompt = input('Press "Enter" to change course/speed or "Ctrl + c" to exit ...\n')
-                except KeyboardInterrupt:
-                    print('\n\n*** Closing the script... ***\n')
-                    sys.exit()
-                if prompt == '':
-                    new_head, new_speed = heading_speed_input()
-                    # Get all 'nmea_srv*' telnet server threads
-                    thread_list = [thread for thread in threading.enumerate() if thread.name.startswith('nmea_srv')]
-                    if thread_list:
-                        for thr in thread_list:
-                            # Update speed and heading
-                            # a = time.time()
-                            thr.set_heading(new_head)
-                            thr.set_speed(new_speed)
-                            # print(time.time() - a)
-                    else:
-                        # Set targeted head and speed without connected clients
-                        self.nmea_obj.heading_targeted = new_head
-                        self.nmea_obj.speed_targeted = new_speed
-                    print()
+                # try:
+                #     prompt = '' #input('Press "Enter" to change course/speed or "Ctrl + c" to exit ...\n')
+                # except KeyboardInterrupt:
+                #     print('\n\n*** Closing the script... ***\n')
+                #     sys.exit()
+                # if prompt == '':
+                #     new_head, new_speed = heading_speed_input()
+                #     # Get all 'nmea_srv*' telnet server threads
+                #     thread_list = [thread for thread in threading.enumerate() if thread.name.startswith('nmea_srv')]
+                #     if thread_list:
+                #         for thr in thread_list:
+                #             # Update speed and heading
+                #             # a = time.time()
+                #             thr.set_heading(new_head)
+                #             thr.set_speed(new_speed)
+                #             # print(time.time() - a)
+                #     else:
+                #         # Set targeted head and speed without connected clients
+                #         self.nmea_obj.heading_targeted = new_head
+                #         self.nmea_obj.speed_targeted = new_speed
+                #     print()
             except KeyboardInterrupt:
                 print('\n\n*** Closing the script... ***\n')
                 sys.exit()

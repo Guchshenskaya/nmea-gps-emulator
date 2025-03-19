@@ -6,9 +6,17 @@ import re
 import sys
 import uuid
 
+import RPi.GPIO as GPIO
+import signal
+
 import serial.tools.list_ports
 
 from utils import exit_script
+
+# def signal_handler(signal, frame):
+#   print
+#   GPIO.cleanup()
+#   sys.exit(0)
 
 
 def run_telnet_server_thread(srv_ip_address: str, srv_port: str, nmea_obj) -> None:
@@ -171,6 +179,9 @@ class NmeaSerialThread(NmeaSrvThread):
     def __init__(self, serial_config, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.serial_config = serial_config
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(7, GPIO.OUT)
+        # signal.signal(signal.SIGINT, signal_handler)
 
     def run(self):
         # Open serial port.
@@ -186,6 +197,11 @@ class NmeaSerialThread(NmeaSrvThread):
                 print('Sending NMEA data...')
                 while True:
                     timer_start = time.perf_counter()
+                    GPIO.output(7, GPIO.HIGH)
+                    # print(GPIO.input(7))
+                    time.sleep(0.0002)
+                    GPIO.output(7, GPIO.LOW)
+                    # print(GPIO.input(7))
                     with self._lock:
                         # Nmea object speed and heading update
                         if self.heading and self.heading != self._heading_cache:
@@ -195,6 +211,7 @@ class NmeaSerialThread(NmeaSrvThread):
                             self.nmea_object.speed_targeted = self.speed
                             self._speed_cache = self.speed
                         nmea_list = [f'{_}' for _ in next(self.nmea_object)]
+                        # print(nmea_list)
                         for nmea in nmea_list:
                             ser.write(str.encode(nmea))
                             time.sleep(0.05)
